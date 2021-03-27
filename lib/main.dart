@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'quiz_brain.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 void main() => runApp(Quizzler());
 
@@ -7,7 +9,7 @@ class Quizzler extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.grey.shade900,
+        backgroundColor: Colors.black12,
         body: SafeArea(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -26,18 +28,32 @@ class QuizPage extends StatefulWidget {
 
 class _QuizPageState extends State<QuizPage> {
   @override
-  List<String> questions = [
-    'You can lead a cow down stairs but not up stairs.',
-    'Approximately one quarter of human bones are in the feet.',
-    'A slug\'s blood is green.'
-  ];
-  int questionNumber = 0;
-  void trackQuestions() {
+  List<Icon> scoreKeeper = [];
+  QuizBrain quizBrain = QuizBrain();
+  void checkAnswers(bool pressedAnswer) {
+    bool checkAnswer = quizBrain.getQuestionAnswer();
     setState(() {
-      if (questionNumber < questions.length.toInt() - 1) {
-        questionNumber++;
+      if (quizBrain.isFinished() == true) {
+        Alert(
+          context: context,
+          title: "Quizzler Game",
+          desc: "You reached to the final question.",
+        ).show();
+        scoreKeeper.clear();
+        quizBrain.reset();
       } else {
-        questionNumber = 0;
+        if (checkAnswer == pressedAnswer) {
+          scoreKeeper.add(Icon(
+            Icons.check,
+            color: Colors.green,
+          ));
+        } else {
+          scoreKeeper.add(Icon(
+            Icons.close,
+            color: Colors.redAccent,
+          ));
+        }
+        quizBrain.nextQuestion();
       }
     });
   }
@@ -48,12 +64,12 @@ class _QuizPageState extends State<QuizPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         Expanded(
-          flex: 5,
+          flex: 6,
           child: Padding(
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                questions[questionNumber],
+                quizBrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -78,7 +94,7 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked true.
-                trackQuestions();
+                checkAnswers(true);
               },
             ),
           ),
@@ -97,12 +113,16 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked false.
-                trackQuestions();
+                checkAnswers(false);
               },
             ),
           ),
         ),
+
         //TODO: Add a Row here as your score keeper
+        Row(
+          children: scoreKeeper,
+        ),
       ],
     );
   }
